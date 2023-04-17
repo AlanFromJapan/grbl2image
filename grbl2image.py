@@ -32,6 +32,15 @@ class Laser:
         self.PowerOn = power
         self.positionsCalculation = PositionsCalculation.ABSOLUTE
 
+    def fromLaser(template:"Laser") -> "Laser":
+        newLaser = Laser()
+        newLaser.X = template.X
+        newLaser.Y = template.Y
+        newLaser.PowerOn = template.PowerOn
+        newLaser.positionsCalculation = template.positionsCalculation
+        return newLaser
+
+
     def __str__(self) -> str:
         return f"X={self.X}, Y={self.Y}, Power={self.PowerOn}"
     
@@ -40,7 +49,15 @@ class Laser:
         return (self.X * PIXELS_PER_MM, self.Y * PIXELS_PER_MM + voffset)
     
 
-    
+def __processLine (l:Laser, match):
+    if match.group("X") != None:
+        #move X to new pos, skip the "X" letter
+        x = float(match.group("X")[1:])
+        l.X = x
+    if match.group("Y") != None:
+        #move Y to new pos, skip the "Y" letter
+        y = float(match.group("Y")[1:])
+        l.Y = y
 
 
 def processFile(filepath:str, targetImage:Image = None, voffset:int = 0, color=None) -> Image:        
@@ -75,32 +92,18 @@ def processFile(filepath:str, targetImage:Image = None, voffset:int = 0, color=N
             #Don't reset the power, jsut don't draw
             #laser.PowerOn = False
 
-            if m.group("X") != None:
-                #move X to new pos, skip the "X" letter
-                x = float(m.group("X")[1:])
-                laser.X = x
-            if m.group("Y") != None:
-                #move Y to new pos, skip the "Y" letter
-                y = float(m.group("Y")[1:])
-                laser.Y = y
+            __processLine(laser, match=m)
 
         #------------------------ G1 : move (and trace) -------------------------
         if m.group("cmd") == "G1":
             #newlaser Power is same as previous by default (so continue what you were doing in sort)
-            newlaser = Laser(x=laser.X, y=laser.Y, power=laser.PowerOn)
+            newlaser = Laser.fromLaser(laser)
 
             #sometimes when filling G1 is used as a G0 depending on the S value
             if m.group("S") != None:                
                 newlaser.PowerOn = int(m.group("S")[1:]) != 0
 
-            if m.group("X") != None:
-                #move X to new pos, skip the "X" letter
-                x = float(m.group("X")[1:])
-                newlaser.X = x
-            if m.group("Y") != None:
-                #move Y to new pos, skip the "Y" letter
-                y = float(m.group("Y")[1:])
-                newlaser.Y = y
+            __processLine(newlaser, match=m)
 
 
             #Draw a line?

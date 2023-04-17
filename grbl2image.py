@@ -10,12 +10,14 @@ PIXELS_PER_MM = 10
 AREA_W_MM = 200
 AREA_H_MM = 200
 
+DEBUG=False
+
 class PositionsCalculation(Enum):
     ABSOLUTE = auto()
     RELATIVE = auto()
 
 #reads a cmd and option X, Y, S and F
-GRBL_REGEX = """\A(?P<cmd>\S+)\s+((?P<X>X\d+[.0-9]*)\s*|(?P<Y>Y\d+[.0-9]*)\s*|(?P<S>S\d+)\s*|(?P<F>F\d+)\s*)*"""
+GRBL_REGEX = """\A(?P<cmd>\S+)\s*((?P<X>X-?\d+[.0-9]*)\s*|(?P<Y>Y-?\d+[.0-9]*)\s*|(?P<S>S\d+[.0-9]*)\s*|(?P<F>F\d+[.0-9]*)\s*)*"""
 r = re.compile(GRBL_REGEX)
 
 
@@ -42,22 +44,29 @@ class Laser:
 
 
     def __str__(self) -> str:
-        return f"X={self.X}, Y={self.Y}, Power={self.PowerOn}"
+        return f"X={self.X}, Y={self.Y}, Power={self.PowerOn}, Calculations={self.positionsCalculation.name}"
     
     #Get the positions IN THE IMAGE of the laser
     def tupleXY(self, voffset:int = 0,):
         return (self.X * PIXELS_PER_MM, self.Y * PIXELS_PER_MM + voffset)
     
 
+#Process a line, assuming l is a COPY of the current laser (or current itself)
 def __processLine (l:Laser, match):
     if match.group("X") != None:
         #move X to new pos, skip the "X" letter
         x = float(match.group("X")[1:])
-        l.X = x
+        if l.positionsCalculation == PositionsCalculation.ABSOLUTE:
+            l.X = x
+        else:
+            l.X = l.X + x
     if match.group("Y") != None:
         #move Y to new pos, skip the "Y" letter
         y = float(match.group("Y")[1:])
-        l.Y = y
+        if l.positionsCalculation == PositionsCalculation.ABSOLUTE:
+            l.Y = y
+        else:
+            l.Y = l.Y + y
 
 
 def processFile(filepath:str, targetImage:Image = None, voffset:int = 0, color=None) -> Image:        
@@ -85,7 +94,7 @@ def processFile(filepath:str, targetImage:Image = None, voffset:int = 0, color=N
             #skip unknown
             continue
         
-        print (f"DBG: {l} => {m.groupdict()}")
+        if DEBUG: print (f"DBG: {l} => {m.groupdict()}")
 
         #------------------------ G0 : move (no trace) -------------------------
         if m.group("cmd") == "G0":
@@ -123,7 +132,7 @@ def processFile(filepath:str, targetImage:Image = None, voffset:int = 0, color=N
             laser.positionsCalculation = PositionsCalculation.RELATIVE
 
         #------------------------ Done. Next line. -------------------------
-        print(f"DBG: laser is at { laser }")
+        if DEBUG: print(f"DBG: laser is at { laser }")
     
     #finished
     return img

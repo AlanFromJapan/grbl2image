@@ -17,7 +17,7 @@ class PositionsCalculation(Enum):
     RELATIVE = auto()
 
 #reads a cmd and option X, Y, S and F
-GRBL_REGEX = """\A(?P<cmd>\S+)\s*((?P<X>X-?\d+[.0-9]*)\s*|(?P<Y>Y-?\d+[.0-9]*)\s*|(?P<S>S\d+[.0-9]*)\s*|(?P<F>F\d+[.0-9]*)\s*)*"""
+GRBL_REGEX = """\A(?P<cmd>\S+)\s*(X(?P<X>-?\d+[.0-9]*)\s*|Y(?P<Y>-?\d+[.0-9]*)\s*|S(?P<S>\d+[.0-9]*)\s*|F(?P<F>\d+[.0-9]*)\s*)*"""
 r = re.compile(GRBL_REGEX)
 
 
@@ -55,14 +55,14 @@ class Laser:
 def __processLine (l:Laser, match):
     if match.group("X") != None:
         #move X to new pos, skip the "X" letter
-        x = float(match.group("X")[1:])
+        x = float(match.group("X"))
         if l.positionsCalculation == PositionsCalculation.ABSOLUTE:
             l.X = x
         else:
             l.X = l.X + x
     if match.group("Y") != None:
         #move Y to new pos, skip the "Y" letter
-        y = float(match.group("Y")[1:])
+        y = float(match.group("Y"))
         if l.positionsCalculation == PositionsCalculation.ABSOLUTE:
             l.Y = y
         else:
@@ -110,7 +110,7 @@ def processFile(filepath:str, targetImage:Image = None, voffset:int = 0, color=N
 
             #sometimes when filling G1 is used as a G0 depending on the S value
             if m.group("S") != None:                
-                newlaser.PowerOn = int(m.group("S")[1:]) != 0
+                newlaser.PowerOn = int(m.group("S")) != 0
 
             __processLine(newlaser, match=m)
 

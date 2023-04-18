@@ -47,8 +47,8 @@ class Laser:
         return f"X={self.X}, Y={self.Y}, Power={self.PowerOn}, Calculations={self.positionsCalculation.name}"
     
     #Get the positions IN THE IMAGE of the laser
-    def tupleXY(self, voffset:int = 0,):
-        return (self.X * PIXELS_PER_MM, self.Y * PIXELS_PER_MM + voffset)
+    def toImageXY(self, xoffset:int = 0, yoffset:int = 0):
+        return (self.X * PIXELS_PER_MM + xoffset, self.Y * PIXELS_PER_MM + yoffset)
     
 
 #Process a line, assuming l is a COPY of the current laser (or current itself)
@@ -69,7 +69,21 @@ def __processLine (l:Laser, match):
             l.Y = l.Y + y
 
 
-def processFile(filepath:str, targetImage:Image = None, voffset:int = 0, color=None) -> Image:        
+def processFile(filepath:str, targetImage:Image = None, xoffset:int = 0, yoffset:int = 0, color="red", lineWidth:float=2) -> Image:        
+    """ Based on a GRBL file content, generates an Image.
+    Not every GRBL commands are supported so go ahead and test, fix, contribute.
+
+    The image will be UPSIDE DOWN so remember to flip it (img = img.transpose(Image.FLIP_TOP_BOTTOM))
+
+    :param filepath: FULL PATH to the source GRBL file
+    :param targetImage: provide an image to write into, or function will make one based on the PIXELS_PER_MM, AREA_W_MM and AREA_H_MM
+    :param xoffset: if you need to write in the image shifted by x pixels (default 0)
+    :param yoffset: if you need to write in the image shifted by y pixels (default 0)
+    :param color: which color you want the line, ie : "red" or (0,0,255,128) for semi-transparent blue (default "red")
+    :param lineWidth: which width you want the line (default 2)
+
+    
+    """
     laser = Laser()
 
     contents = None
@@ -98,7 +112,7 @@ def processFile(filepath:str, targetImage:Image = None, voffset:int = 0, color=N
 
         #------------------------ G0 : move (no trace) -------------------------
         if m.group("cmd") == "G0":
-            #Don't reset the power, jsut don't draw
+            #Don't reset the power, just don't draw
             #laser.PowerOn = False
 
             __processLine(laser, match=m)
@@ -117,7 +131,7 @@ def processFile(filepath:str, targetImage:Image = None, voffset:int = 0, color=N
 
             #Draw a line?
             if newlaser.PowerOn:
-                draw.line((laser.tupleXY(voffset), newlaser.tupleXY(voffset)), fill=color, width=2)
+                draw.line((laser.toImageXY(xoffset, yoffset), newlaser.toImageXY(xoffset, yoffset)), fill=color, width=lineWidth)
 
             #update pos
             laser = newlaser

@@ -15,7 +15,7 @@ I took some assumptions with this code, and the more mature it will get the more
 - You work in Metric system (like you should)
 - Default coords are ABSOLUTE
 - Origin is 0,0
-- Work area is 200mm x 200mm with a resoolution of 10px/mm (but you can change that - see examples)
+- Work area is 200mm x 200mm with a resolution of 10px/mm (but you can change that - see examples)
 
 ## Compatibility / Tested software
 So far the tested software and empirically perceived support:
@@ -71,4 +71,4 @@ img = img.transpose(Image.FLIP_TOP_BOTTOM)
 img.save("laser_job_001.png")
 ```
 ## Source code
-(Source is MIT licensed on GitHub)[https://github.com/AlanFromJapan/grbl2image]
+Source is MIT licensed on GitHub : https://github.com/AlanFromJapan/grbl2image

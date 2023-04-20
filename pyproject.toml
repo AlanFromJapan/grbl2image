@@ -9,7 +9,7 @@ version = "1.0.0"
 authors = [
   { name="AlanFromJapan", email="alanfromjapan@gmail.com" },
 ]
-description = "Generates an image (PNG, JPEG, etc.) from a GRBL file (.NC, .GC, ...), in Python using PILlow (python3)"
+description = "Generates an image (PNG, JPEG, etc.) from a GRBL file (.NC, .GC, ...), in Python using pillow (python3)"
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [

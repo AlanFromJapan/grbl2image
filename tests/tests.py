@@ -1,4 +1,9 @@
-import grbl2image_AlanFromJapan.grbl2image as G2I
+#Doesn't feel like the canonical way to import a package in another folder but for now it works.
+#  credits to https://stackoverflow.com/questions/4383571/importing-files-from-different-folder
+import sys
+sys.path.insert(1, 'src/grbl2image_AlanFromJapan')
+import grbl2image as G2I
+
 import os
 
 from PIL import Image

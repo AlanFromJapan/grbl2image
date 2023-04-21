@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "grbl2image_AlanFromJapan"
+version = "1.0.3"
+authors = [
+  { name="AlanFromJapan" },
+]
+description = "Generates an image (PNG, JPEG, etc.) from a GRBL file (.NC, .GC, ...) in Python using pillow (python3)"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+  "Pillow>=9.0"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/AlanFromJapan/grbl2image"
+"Bug Tracker" = "https://github.com/AlanFromJapan/grbl2image/issues"
+"Parent project" = "https://github.com/AlanFromJapan/GrblWebStreamer"

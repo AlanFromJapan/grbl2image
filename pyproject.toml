@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 
 [project]
-name = "grbl2image_AlanFromJapan"
-version = "1.0.3"
+name = "grbl2image"
+version = "1.0.0"
 authors = [
   { name="AlanFromJapan" },
 ]

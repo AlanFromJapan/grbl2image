@@ -7,7 +7,7 @@ The target is to generate a simply a top view of a GRBL job for my Laser (see *l
 
 ## What it does
 - [x] Generates image from a GRBL file for a Laser job
-- [ ] Calculates an estimated size of the used frame (in LightBurn terminology)
+- [x] Calculates estimated bounds of the job
 - [ ] Calculates an estimated time of completion of the job
 
 ## Limitations 

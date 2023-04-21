@@ -49,7 +49,40 @@ class Laser:
     #Get the positions IN THE IMAGE of the laser
     def toImageXY(self, xoffset:int = 0, yoffset:int = 0):
         return (self.X * PIXELS_PER_MM + xoffset, self.Y * PIXELS_PER_MM + yoffset)
-    
+
+
+
+#size of a job in mm, estimated time, etc.
+class JobStats:
+    pointFromMM = []
+    pointToMM = []
+    estimatedDurationSec = 0
+    name = ""
+
+    def __init__(self, name) -> None:
+        self.pointFromMM = [100000000000,100000000000]
+        self.pointToMM = [-1,-1]
+        self.estimatedDurationSec = -1
+        self.name = name
+
+    def updateStats (self, laser: Laser):        
+        if laser.X == laser.Y == 0:
+            #ignore unassigned laser pos assuming you will never reach 0,0.
+            return 
+        
+        if laser.X < self.pointFromMM[0]:
+            self.pointFromMM[0] = laser.X
+        if laser.Y < self.pointFromMM[1]:
+            self.pointFromMM[1] = laser.Y
+        if laser.X > self.pointToMM[0]:
+            self.pointToMM[0] = laser.X
+        if laser.Y > self.pointToMM[1]:
+            self.pointToMM[1] = laser.Y
+
+    def __str__(self) -> str:
+        return f"Job '{self.name}' from {self.pointFromMM} to {self.pointToMM}. Estimated duration {self.estimatedDurationSec} sec."
+
+
 
 #Process a line, assuming l is a COPY of the current laser (or current itself)
 def __processLine (l:Laser, match):
@@ -69,7 +102,7 @@ def __processLine (l:Laser, match):
             l.Y = l.Y + y
 
 
-def processFile(filepath:str, targetImage:Image = None, xoffset:int = 0, yoffset:int = 0, color="red", lineWidth:float=2) -> Image:        
+def processFile(filepath:str, targetImage:Image = None, xoffset:int = 0, yoffset:int = 0, color="red", lineWidth:float=2):        
     """ Based on a GRBL file content, generates an Image.
     Not every GRBL commands are supported so go ahead and test, fix, contribute.
 
@@ -89,6 +122,8 @@ def processFile(filepath:str, targetImage:Image = None, xoffset:int = 0, yoffset
     contents = None
     with open(filepath, "r") as f:
         contents = f.readlines()
+
+    stats = JobStats(os.path.basename(filepath))
 
     img = targetImage
     if targetImage == None:
@@ -146,7 +181,10 @@ def processFile(filepath:str, targetImage:Image = None, xoffset:int = 0, yoffset
             laser.positionsCalculation = PositionsCalculation.RELATIVE
 
         #------------------------ Done. Next line. -------------------------
+        #Update the stats
+        stats.updateStats(laser)
+
         if DEBUG: print(f"DBG: laser is at { laser }")
     
     #finished
-    return img
+    return img, stats

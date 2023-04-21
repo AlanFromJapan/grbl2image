@@ -1,14 +1,14 @@
 # grbl2image
-Generates an **image** (PNG, JPEG, etc.) from a **GRBL** file (.NC, .GC, ...), in Python using pillow (python3 PIL fork). It is to be used as a reusable component for the **parent project [GRBL WebStreamer](https://github.com/AlanFromJapan/GrblWebStreamer)** that is a webinterface for laser cutters running on Raspi or similar SBC.
+Generates an **image** (PNG, JPEG, etc.) from a **GRBL** file (.NC, .GC, ...), in Python using pillow (python3 PIL fork). It is to be used as a reusable standalone component, initially for the **parent project [GRBL WebStreamer](https://github.com/AlanFromJapan/GrblWebStreamer)** that is a webinterface for laser cutters running on Raspi or similar SBC.
 
 ![Turns GRBL code into PNG](https://github.com/AlanFromJapan/grbl2image/blob/main/grbl2image.png?raw=true)
 
 The target is to generate a simply a top view of a GRBL job for my Laser (see *limitations* below). As of now only a subset of the GRBL commands are recognized, and more will be added along the way when their need arise. This is not meant to be the complete solution for all GRBL files, but I'll be taking requests on GitHub so don't hesitate. 
 
 ## What it does
-[x] Generates image from a GRBL file for a Laser job
-[ ] Calculates an estimated size of the used frame (in LightBurn terminology)
-[ ] Calculates an estimated time of completion of the job
+- [x] Generates image from a GRBL file for a Laser job
+- [ ] Calculates an estimated size of the used frame (in LightBurn terminology)
+- [ ] Calculates an estimated time of completion of the job
 
 ## Limitations 
 This is made to support a ***laser*** cutter/engraver, *not CNC*, and this is out of scope even of the end scope of library. There are already good solutions that handle the 3D component of your CNC. This is just a top view of a GRBL file, so if it works with yours CNC good for you!

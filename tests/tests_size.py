@@ -8,11 +8,12 @@ import os
 
 from PIL import Image
 
-img = G2I.processFile(os.path.join("tests", "sample.gcode", "Test gcode 2.nc"), color="blue")
+#suppose your laser is a 40cm x 30xm for instance you could use these settings **before** calling processFile()
+G2I.PIXELS_PER_MM = 5
+G2I.AREA_W_MM = 300
+G2I.AREA_H_MM = 400
 
-img = G2I.processFile(os.path.join("tests", "sample.gcode", "Test gcode 1.nc"), targetImage=img, color="red", yoffset=300)
-
-#img = grbl2image.processFile("sample.gcode/Tokens 6 - Parnast final.nc", targetImage=img, color="black", yoffset=600)
+img = G2I.processFile(os.path.join("tests", "sample.gcode", "Test gcode 1.nc"), color="blue", lineWidth=1)
 
 #final flip
 img = img.transpose(Image.FLIP_TOP_BOTTOM)

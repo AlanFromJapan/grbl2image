@@ -1,12 +1,17 @@
 # grbl2image
-Generates an **image** (PNG, JPEG, etc.) from a **GRBL** file (.NC, .GC, ...), in Python using PILlow (python3).
+Generates an **image** (PNG, JPEG, etc.) from a **GRBL** file (.NC, .GC, ...), in Python using pillow (python3 PIL fork). It is to be used as a reusable component for the **parent project [GRBL WebStreamer](https://github.com/AlanFromJapan/GrblWebStreamer)** that is a webinterface for laser cutters running on Raspi or similar SBC.
 
 ![Turns GRBL code into PNG](https://github.com/AlanFromJapan/grbl2image/blob/main/grbl2image.png?raw=true)
 
 The target is to generate a simply a top view of a GRBL job for my Laser (see *limitations* below). As of now only a subset of the GRBL commands are recognized, and more will be added along the way when their need arise. This is not meant to be the complete solution for all GRBL files, but I'll be taking requests on GitHub so don't hesitate. 
 
+## What it does
+[x] Generates image from a GRBL file for a Laser job
+[ ] Calculates an estimated size of the used frame (in LightBurn terminology)
+[ ] Calculates an estimated time of completion of the job
+
 ## Limitations 
-This is made to support my Laser, not CNC, and this is out of scope even of the end scope of library. There are already good solutions that handle the 3D component of your CNC. This is just a top view of a GRBL file, so if it works with yours CNC good for you!
+This is made to support a ***laser*** cutter/engraver, *not CNC*, and this is out of scope even of the end scope of library. There are already good solutions that handle the 3D component of your CNC. This is just a top view of a GRBL file, so if it works with yours CNC good for you!
 
 Therefore GRBL codes that don't make sense for a laser will be ignored and not implemented, but if you have time fork this project!
 
@@ -15,7 +20,7 @@ I took some assumptions with this code, and the more mature it will get the more
 - You work in Metric system (like you should)
 - Default coords are ABSOLUTE
 - Origin is 0,0
-- Work area is 200mm x 200mm with a resolution of 10px/mm (but you can change that - see examples)
+- Work area is 200mm x 200mm with a resolution of 10px/mm by default (but you can change that - see examples below)
 
 ## Compatibility / Tested software
 So far the tested software and empirically perceived support:
@@ -36,7 +41,7 @@ I will add them as I need them, but here are the ones that should work as of now
 ## Sample usage
 ### Generate an image from GRBL file
 ```python
-import grbl2image_AlanFromJapan.grbl2image as G2I
+import grbl2image.grbl2image as G2I
 from PIL import Image
 
 #Generate the PIL Image object based on sample code
@@ -53,7 +58,7 @@ img.show()
 ### Change the target image size
 Default is 200mm x 200mm at 10px/mm resolution, but you can change that according your laser work area. Tip : better have a bigger image and then scaling down than a small image all along.
 ```python
-import grbl2image_AlanFromJapan.grbl2image as G2I
+import grbl2image.grbl2image as G2I
 from PIL import Image
 
 #suppose your laser is a 40cm x 30xm for instance you could use these settings **before** calling processFile()
@@ -71,4 +76,5 @@ img = img.transpose(Image.FLIP_TOP_BOTTOM)
 img.save("laser_job_001.png")
 ```
 ## Source code
-Source is MIT licensed on GitHub : https://github.com/AlanFromJapan/grbl2image
+- Source is MIT licensed on GitHub : https://github.com/AlanFromJapan/grbl2image
+- Parent project [GRBL WebStreamer](https://github.com/AlanFromJapan/GrblWebStreamer) is also on GitHub under MIT license

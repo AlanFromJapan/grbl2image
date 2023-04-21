@@ -45,9 +45,12 @@ import grbl2image.grbl2image as G2I
 from PIL import Image
 
 #Generate the PIL Image object based on sample code
-img = G2I.processFile("sample.gcode/Test gcode 1.nc", color="blue")
+img, stats = G2I.processFile("sample.gcode/Test gcode 1.nc", color="blue")
+print(stats)
+
 #overlay another job in the same image
-img = G2I.processFile("sample.gcode/Test gcode 2.nc", targetImage=img, color="red", yoffset=300)
+img, stats = G2I.processFile("sample.gcode/Test gcode 2.nc", targetImage=img, color="red", yoffset=300)
+print(stats)
 
 #final flip because the image 0,0 is top left and for us human it's at the bottom left
 img = img.transpose(Image.FLIP_TOP_BOTTOM)
@@ -67,7 +70,7 @@ G2I.AREA_W_MM = 300
 G2I.AREA_H_MM = 400
 
 #Generate the PIL Image object based on sample code
-img = G2I.processFile("sample.gcode/Test gcode 1.nc", color="blue")
+img, _ = G2I.processFile("sample.gcode/Test gcode 1.nc", color="blue")
 
 #final flip because the image 0,0 is top left and for us human it's at the bottom left
 img = img.transpose(Image.FLIP_TOP_BOTTOM)

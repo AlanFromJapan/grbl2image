@@ -10,7 +10,7 @@ from PIL import Image
 
 samplesPath = os.path.join("tests", "sample.gcode")
 #list of files
-l = [l for l in os.listdir(samplesPath) if os.path.isfile(os.path.join(samplesPath, l)) and l.lower()[-3:] == '.nc']
+l = [l for l in os.listdir(samplesPath) if os.path.isfile(os.path.join(samplesPath, l)) and l.lower()[-3:] in ['.nc', '.gc']]
 
 for f in l:
     print (f)

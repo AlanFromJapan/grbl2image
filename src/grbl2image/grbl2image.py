@@ -10,6 +10,7 @@ PIXELS_PER_MM = 10
 AREA_W_MM = 200
 AREA_H_MM = 200
 BG_COLOR = (255,255,255,255)
+NO_BLENDING = False #if True, the laser power will be ignored and the line will be drawn without alpha blending (ON/OFF mode)
 
 DEBUG=False
 
@@ -107,6 +108,9 @@ def __processLine (l:Laser, match):
 
 
 def getColorWithAlpha (color, power):
+    if NO_BLENDING:
+        return color
+    
     #power is [0..100] so convert to [0..255]
     return (color[0], color[1], color[2], int(power / 100.0 * 255.0))
 
@@ -205,6 +209,6 @@ def processFile(filepath:str, targetImage:Image = None, xoffset:int = 0, yoffset
     #make a (default white) background and paste the drawing calque on it
     background = Image.new("RGBA", (AREA_H_MM * PIXELS_PER_MM, AREA_W_MM * PIXELS_PER_MM), BG_COLOR)
     background.paste(img, (0,0), img)
-    
+
     #finished
     return background, stats

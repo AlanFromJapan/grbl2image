@@ -4,11 +4,12 @@ from enum import Enum, auto
 
 from PIL import Image
 from PIL import ImageDraw
-from PIL import ImageFont
+from PIL import ImageColor
 
 PIXELS_PER_MM = 10
 AREA_W_MM = 200
 AREA_H_MM = 200
+BG_COLOR = (255,255,255,255)
 
 DEBUG=False
 
@@ -25,31 +26,34 @@ r = re.compile(GRBL_REGEX)
 class Laser:
     X = 0.0
     Y = 0.0
-    PowerOn = False
+    Power = 0.0 #[0..100]
     positionsCalculation = PositionsCalculation.ABSOLUTE
 
-    def __init__(self, x=0.0, y=0.0, power=False) -> None:
+    def __init__(self, x=0.0, y=0.0, power=0.0) -> None:
         self.X = x
         self.Y = y
-        self.PowerOn = power
+        self.Power = power
         self.positionsCalculation = PositionsCalculation.ABSOLUTE
 
     def fromLaser(template:"Laser") -> "Laser":
         newLaser = Laser()
         newLaser.X = template.X
         newLaser.Y = template.Y
-        newLaser.PowerOn = template.PowerOn
+        newLaser.Power = template.Power
         newLaser.positionsCalculation = template.positionsCalculation
         return newLaser
 
 
     def __str__(self) -> str:
-        return f"X={self.X}, Y={self.Y}, Power={self.PowerOn}, Calculations={self.positionsCalculation.name}"
+        return f"X={self.X}, Y={self.Y}, Power={self.Power}, Calculations={self.positionsCalculation.name}"
     
     #Get the positions IN THE IMAGE of the laser
     def toImageXY(self, xoffset:int = 0, yoffset:int = 0):
         return (self.X * PIXELS_PER_MM + xoffset, self.Y * PIXELS_PER_MM + yoffset)
 
+    def powerOn(self):      
+        #reminder power is [0..100] 
+        return self.Power > 0.1
 
 
 #size of a job in mm, estimated time, etc.
@@ -102,6 +106,11 @@ def __processLine (l:Laser, match):
             l.Y = l.Y + y
 
 
+def getColorWithAlpha (color, power):
+    #power is [0..100] so convert to [0..255]
+    return (color[0], color[1], color[2], int(power / 100.0 * 255.0))
+
+
 def processFile(filepath:str, targetImage:Image = None, xoffset:int = 0, yoffset:int = 0, color="red", lineWidth:float=2):        
     """ Based on a GRBL file content, generates an Image.
     Not every GRBL commands are supported so go ahead and test, fix, contribute.
@@ -127,9 +136,12 @@ def processFile(filepath:str, targetImage:Image = None, xoffset:int = 0, yoffset
 
     img = targetImage
     if targetImage == None:
-        img = Image.new("RGBA", (AREA_H_MM * PIXELS_PER_MM, AREA_W_MM * PIXELS_PER_MM), (255,255,255))
+        img = Image.new("RGBA", (AREA_H_MM * PIXELS_PER_MM, AREA_W_MM * PIXELS_PER_MM), BG_COLOR)
 
     draw = ImageDraw.Draw(img, "RGBA")
+
+    #convert color to RGBA ("blue" => (0,0,255,255))
+    K = ImageColor.getrgb(color)
         
     for l in contents:
         l = l.strip()
@@ -159,14 +171,16 @@ def processFile(filepath:str, targetImage:Image = None, xoffset:int = 0, yoffset
 
             #sometimes when filling G1 is used as a G0 depending on the S value
             if m.group("S") != None:                
-                newlaser.PowerOn = int(m.group("S")) != 0
+                #if S is 0, it's a move without power.
+                #Convert power to percentage [0..100] (in the file it's per thousand)
+                newlaser.Power = float(m.group("S")) / 10.0
 
             __processLine(newlaser, match=m)
 
 
             #Draw a line?
-            if newlaser.PowerOn:
-                draw.line((laser.toImageXY(xoffset, yoffset), newlaser.toImageXY(xoffset, yoffset)), fill=color, width=lineWidth)
+            if newlaser.powerOn():
+                draw.line((laser.toImageXY(xoffset, yoffset), newlaser.toImageXY(xoffset, yoffset)), fill=getColorWithAlpha(K, newlaser.Power), width=lineWidth)
 
             #update pos
             laser = newlaser

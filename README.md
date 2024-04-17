@@ -8,6 +8,7 @@ The target is to generate a simply a top view of a GRBL job for my Laser (see *l
 ## What it does
 - [x] Generates image from a GRBL file for a Laser job
 - [x] Calculates estimated bounds of the job
+- [x] Supports color blending for "greyscale" jobs 
 - [ ] Calculates an estimated time of completion of the job
 
 ## Limitations 
@@ -78,6 +79,23 @@ img = img.transpose(Image.FLIP_TOP_BOTTOM)
 #save
 img.save("laser_job_001.png")
 ```
+
+### Customize the rendering
+```python
+import grbl2image.grbl2image as G2I
+from PIL import Image
+
+# don't blend, just laser ON/OFF : makes you see the whole work but make greyscale images a big blotch
+G2I.NO_BLENDING = True
+# change default background color
+G2I.BG_COLOR = "whitesmoke"
+
+#Generate the PIL Image object based on sample code and overwrite the default values
+img, _ = G2I.processFile("sample.gcode/Test gcode 1.nc", color="blue", bg_color="yellow", noblending=False)
+
+...
+```
+
 ## Source code
 - Source is MIT licensed on GitHub : https://github.com/AlanFromJapan/grbl2image
 - Parent project [GRBL WebStreamer](https://github.com/AlanFromJapan/GrblWebStreamer) is also on GitHub under MIT license

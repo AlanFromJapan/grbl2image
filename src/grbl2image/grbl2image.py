@@ -107,15 +107,15 @@ def __processLine (l:Laser, match):
             l.Y = l.Y + y
 
 
-def getColorWithAlpha (color, power):
-    if NO_BLENDING:
+def getColorWithAlpha (color, power, noblending = NO_BLENDING):
+    if noblending:
         return color
     
     #power is [0..100] so convert to [0..255]
     return (color[0], color[1], color[2], int(power / 100.0 * 255.0))
 
 
-def processFile(filepath:str, targetImage:Image = None, xoffset:int = 0, yoffset:int = 0, color="red", lineWidth:float=2):        
+def processFile(filepath:str, targetImage:Image = None, xoffset:int = 0, yoffset:int = 0, color="red", lineWidth:float=2, bg_color=BG_COLOR, noblending = NO_BLENDING):
     """ Based on a GRBL file content, generates an Image.
     Not every GRBL commands are supported so go ahead and test, fix, contribute.
 
@@ -127,6 +127,8 @@ def processFile(filepath:str, targetImage:Image = None, xoffset:int = 0, yoffset
     :param yoffset: if you need to write in the image shifted by y pixels (default 0)
     :param color: which color you want the line, ie : "red" or (0,0,255,128) for semi-transparent blue (default "red")
     :param lineWidth: which width you want the line (default 2)
+    :param bg_color: which color you want the background (default BG_COLOR)
+    :param noblending: if True, the laser power will be ignored and the line will be drawn without alpha blending (ON/OFF mode) (default False=NO_BLENDING)
 
     
     """
@@ -138,12 +140,11 @@ def processFile(filepath:str, targetImage:Image = None, xoffset:int = 0, yoffset
 
     stats = JobStats(os.path.basename(filepath))
 
-    img = targetImage
-    if targetImage == None:
-        #img is a calque we'll be drawing on
-        img = Image.new("RGBA", (AREA_H_MM * PIXELS_PER_MM, AREA_W_MM * PIXELS_PER_MM), (255,255,255,0))
 
-    draw = ImageDraw.Draw(img, "RGBA")
+    #img is a calque we'll be drawing on
+    calque = Image.new("RGBA", (AREA_H_MM * PIXELS_PER_MM, AREA_W_MM * PIXELS_PER_MM), (255,255,255,0))
+
+    draw = ImageDraw.Draw(calque, "RGBA")
 
     #convert color to RGBA ("blue" => (0,0,255,255))
     K = ImageColor.getrgb(color)
@@ -185,7 +186,7 @@ def processFile(filepath:str, targetImage:Image = None, xoffset:int = 0, yoffset
 
             #Draw a line?
             if newlaser.powerOn():
-                draw.line((laser.toImageXY(xoffset, yoffset), newlaser.toImageXY(xoffset, yoffset)), fill=getColorWithAlpha(K, newlaser.Power), width=lineWidth)
+                draw.line((laser.toImageXY(xoffset, yoffset), newlaser.toImageXY(xoffset, yoffset)), fill=getColorWithAlpha(K, newlaser.Power, noblending), width=lineWidth)
 
             #update pos
             laser = newlaser
@@ -207,8 +208,11 @@ def processFile(filepath:str, targetImage:Image = None, xoffset:int = 0, yoffset
     
 
     #make a (default white) background and paste the drawing calque on it
-    background = Image.new("RGBA", (AREA_H_MM * PIXELS_PER_MM, AREA_W_MM * PIXELS_PER_MM), BG_COLOR)
-    background.paste(img, (0,0), img)
+    if targetImage == None:
+        background = Image.new("RGBA", (AREA_H_MM * PIXELS_PER_MM, AREA_W_MM * PIXELS_PER_MM), bg_color)
+    else:
+        background = targetImage.copy()
+    background.paste(calque, (0,0), calque)
 
     #finished
     return background, stats

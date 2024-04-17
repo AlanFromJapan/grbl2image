@@ -136,7 +136,8 @@ def processFile(filepath:str, targetImage:Image = None, xoffset:int = 0, yoffset
 
     img = targetImage
     if targetImage == None:
-        img = Image.new("RGBA", (AREA_H_MM * PIXELS_PER_MM, AREA_W_MM * PIXELS_PER_MM), BG_COLOR)
+        #img is a calque we'll be drawing on
+        img = Image.new("RGBA", (AREA_H_MM * PIXELS_PER_MM, AREA_W_MM * PIXELS_PER_MM), (255,255,255,0))
 
     draw = ImageDraw.Draw(img, "RGBA")
 
@@ -200,5 +201,10 @@ def processFile(filepath:str, targetImage:Image = None, xoffset:int = 0, yoffset
 
         if DEBUG: print(f"DBG: laser is at { laser }")
     
+
+    #make a (default white) background and paste the drawing calque on it
+    background = Image.new("RGBA", (AREA_H_MM * PIXELS_PER_MM, AREA_W_MM * PIXELS_PER_MM), BG_COLOR)
+    background.paste(img, (0,0), img)
+    
     #finished
-    return img, stats
+    return background, stats

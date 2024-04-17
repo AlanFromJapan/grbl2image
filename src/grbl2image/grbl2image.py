@@ -1,4 +1,5 @@
-import os, io
+import os
+import math
 import re
 from enum import Enum, auto
 
@@ -29,12 +30,14 @@ class Laser:
     Y = 0.0
     Power = 0.0 #[0..100]
     positionsCalculation = PositionsCalculation.ABSOLUTE
+    speed = -1.0 # *UNITS PER MINUTE*
 
-    def __init__(self, x=0.0, y=0.0, power=0.0) -> None:
+    def __init__(self, x=0.0, y=0.0, power=0.0, speed = -1.0) -> None:
         self.X = x
         self.Y = y
         self.Power = power
         self.positionsCalculation = PositionsCalculation.ABSOLUTE
+        self.speed = speed
 
     def fromLaser(template:"Laser") -> "Laser":
         newLaser = Laser()
@@ -42,11 +45,12 @@ class Laser:
         newLaser.Y = template.Y
         newLaser.Power = template.Power
         newLaser.positionsCalculation = template.positionsCalculation
+        newLaser.speed = template.speed
         return newLaser
 
 
     def __str__(self) -> str:
-        return f"X={self.X}, Y={self.Y}, Power={self.Power}, Calculations={self.positionsCalculation.name}"
+        return f"X={self.X}, Y={self.Y}, Power={self.Power}, Calculations={self.positionsCalculation.name}, Speed={str(self.speed) if self.speed > 0 else 'unknown'}"
     
     #Get the positions IN THE IMAGE of the laser
     def toImageXY(self, xoffset:int = 0, yoffset:int = 0):
@@ -70,11 +74,22 @@ class JobStats:
         self.estimatedDurationSec = -1
         self.name = name
 
-    def updateStats (self, laser: Laser):        
+    def updateStats (self, laser: Laser, newlaser: Laser):        
         if laser.X == laser.Y == 0:
             #ignore unassigned laser pos assuming you will never reach 0,0.
             return 
         
+        #update the duration from distance
+        if laser.speed > 0:
+            #need a known speed to calculate the duration
+            dist = math.sqrt((laser.X - newlaser.X)**2 + (laser.Y - newlaser.Y)**2) 
+            #time increment in SECONDS for that move
+            #don't care of the mode of the units (mm/min or inches/min), we just need to know the time it takes to go from A to B and since X/Y are in whatever unit you use, the units cancel each other leaving time only
+            timeincrement = dist / (newlaser.speed / 60.0)
+            #accumulate
+            self.estimatedDurationSec += timeincrement
+
+        #update the bounding box
         if laser.X < self.pointFromMM[0]:
             self.pointFromMM[0] = laser.X
         if laser.Y < self.pointFromMM[1]:
@@ -84,8 +99,21 @@ class JobStats:
         if laser.Y > self.pointToMM[1]:
             self.pointToMM[1] = laser.Y
 
+    def __duration2String(self) -> str:
+        h = self.estimatedDurationSec // 3600
+        m = (self.estimatedDurationSec % 3600) // 60
+        s = self.estimatedDurationSec % 60        
+        return f"{int(h)}h {int(m)}m {int(s)}s"
+
     def __str__(self) -> str:
-        return f"Job '{self.name}' from {self.pointFromMM} to {self.pointToMM}. Estimated duration {self.estimatedDurationSec} sec."
+        return f"Job '{self.name}' from {self.pointFromMM} ({self.__coord2String(self.physicalCoord2Pixels(self.pointFromMM))} px) to {self.pointToMM} ({self.__coord2String(self.physicalCoord2Pixels(self.pointToMM))} px). Estimated duration [{self.__duration2String()}] ."
+    
+    def physicalCoord2Pixels(self, XYinMM):
+        #invert Y axis since the image is upside down, so WRONG if you look at it now but since you have to flip the image to use it later...
+        return (int(math.ceil(XYinMM[0] * PIXELS_PER_MM)), int((AREA_H_MM - XYinMM[1]) * PIXELS_PER_MM))
+    
+    def __coord2String(self, XYinMM):
+        return f"({int(XYinMM[0])}, {int(XYinMM[1])})"
 
 
 
@@ -98,6 +126,7 @@ def __processLine (l:Laser, match):
             l.X = x
         else:
             l.X = l.X + x
+
     if match.group("Y") != None:
         #move Y to new pos, skip the "Y" letter
         y = float(match.group("Y"))
@@ -105,6 +134,10 @@ def __processLine (l:Laser, match):
             l.Y = y
         else:
             l.Y = l.Y + y
+
+    if match.group("F") != None:
+        #set laser speed in *UNITS PER MINUTE*
+        l.speed = float(match.group("F"))
 
 
 def getColorWithAlpha (color, power, noblending = NO_BLENDING):
@@ -168,10 +201,15 @@ def processFile(filepath:str, targetImage:Image = None, xoffset:int = 0, yoffset
             #Don't reset the power, just don't draw
             #laser.PowerOn = False
 
+            newlaser = Laser.fromLaser(laser)
+
             __processLine(laser, match=m)
 
+            #Update the stats
+            stats.updateStats(laser, newlaser)
+
         #------------------------ G1 : move (and trace) -------------------------
-        if m.group("cmd") == "G1":
+        elif m.group("cmd") == "G1":
             #newlaser Power is same as previous by default (so continue what you were doing in sort)
             newlaser = Laser.fromLaser(laser)
 
@@ -188,6 +226,9 @@ def processFile(filepath:str, targetImage:Image = None, xoffset:int = 0, yoffset
             if newlaser.powerOn():
                 draw.line((laser.toImageXY(xoffset, yoffset), newlaser.toImageXY(xoffset, yoffset)), fill=getColorWithAlpha(K, newlaser.Power, noblending), width=lineWidth)
 
+            #Update the stats
+            stats.updateStats(laser, newlaser)
+
             #update pos
             laser = newlaser
 
@@ -201,8 +242,7 @@ def processFile(filepath:str, targetImage:Image = None, xoffset:int = 0, yoffset
             laser.positionsCalculation = PositionsCalculation.RELATIVE
 
         #------------------------ Done. Next line. -------------------------
-        #Update the stats
-        stats.updateStats(laser)
+
 
         if DEBUG: print(f"DBG: laser is at { laser }")
     

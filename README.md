@@ -9,7 +9,7 @@ The target is to generate a simply a top view of a GRBL job for my Laser (see *l
 - [x] Generates image from a GRBL file for a Laser job
 - [x] Calculates estimated bounds of the job
 - [x] Supports color blending for "greyscale" jobs 
-- [ ] Calculates an estimated time of completion of the job
+- [x] Calculates an estimated time of completion of the job
 
 ## Limitations 
 This is made to support a ***laser*** cutter/engraver, *not CNC*, and this is out of scope even of the end scope of library. There are already good solutions that handle the 3D component of your CNC. This is just a top view of a GRBL file, so if it works with yours CNC good for you!
@@ -94,6 +94,19 @@ G2I.BG_COLOR = "whitesmoke"
 img, _ = G2I.processFile("sample.gcode/Test gcode 1.nc", color="blue", bg_color="yellow", noblending=False)
 
 ...
+```
+
+### Get stats about the job
+```python
+import grbl2image.grbl2image as G2I
+
+#Make the image and compute the stats (see details in the object attributes)
+img, stats = G2I.processFile("sample.gcode/Test gcode 1.nc")
+print(stats)
+```
+Prints:
+```
+>>>> Job 'Test gcode 1.nc' from [8.0, 4.599] ((80, 1954) px) to [83.12600000000003, 24.899000000000086] ((832, 1751) px). Estimated duration [0h 1m 9s] .
 ```
 
 ## Source code

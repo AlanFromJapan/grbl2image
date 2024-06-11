@@ -14,7 +14,9 @@ python3 -m build
 
 echo "Build done."
 echo -e "${CYAN}If everything went fine, do you want to push it to PyPi ${RED}PROD${CYAN}?"
-echo -e "By the way, you remembered to update the version number before that right?"
+echo -e "By the way, you remembered to ${RED}update the version number before that, right${CYAN}?"
+echo -e "(it's in the pyproject.toml file)"
+echo -e ""
 echo -e "Think twice, now is good time to Ctrl+C this...$NC"
 read -n1 -s -r -p $'Press any key to continue...\n' key
 

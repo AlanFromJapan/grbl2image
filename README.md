@@ -51,7 +51,10 @@ print(stats)
 
 #overlay another job in the same image
 img, stats = G2I.processFile("sample.gcode/Test gcode 2.nc", targetImage=img, color="red", yoffset=300)
+#show the stats about your job (duration, boundaries, ...)
 print(stats)
+#example for duration
+print(f"Job duration in sec : {stats.estimatedDurationSec:0.1f}s")
 
 #final flip because the image 0,0 is top left and for us human it's at the bottom left
 img = img.transpose(Image.FLIP_TOP_BOTTOM)

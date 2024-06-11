@@ -26,12 +26,6 @@ r = re.compile(GRBL_REGEX)
 
 #laser with its coordinates in REAL world (assume MM unit)
 class Laser:
-    X = 0.0
-    Y = 0.0
-    Power = 0.0 #[0..100]
-    positionsCalculation = PositionsCalculation.ABSOLUTE
-    speed = -1.0 # *UNITS PER MINUTE*
-
     def __init__(self, x=0.0, y=0.0, power=0.0, speed = -1.0) -> None:
         self.X = x
         self.Y = y
@@ -63,11 +57,6 @@ class Laser:
 
 #size of a job in mm, estimated time, etc.
 class JobStats:
-    pointFromMM = []
-    pointToMM = []
-    estimatedDurationSec = 0
-    name = ""
-
     def __init__(self, name) -> None:
         self.pointFromMM = [100000000000,100000000000]
         self.pointToMM = [-1,-1]
@@ -106,7 +95,7 @@ class JobStats:
         return f"{int(h)}h {int(m)}m {int(s)}s"
 
     def __str__(self) -> str:
-        return f"Job '{self.name}' from {self.pointFromMM} ({self.__coord2String(self.physicalCoord2Pixels(self.pointFromMM))} px) to {self.pointToMM} ({self.__coord2String(self.physicalCoord2Pixels(self.pointToMM))} px). Estimated duration [{self.__duration2String()}] ."
+        return f"Job '{self.name}' from [{self.pointFromMM[0]:0.2f},{self.pointFromMM[1]:0.2f}]mm ({self.__coord2String(self.physicalCoord2Pixels(self.pointFromMM))} px) to [{self.pointToMM[0]:0.2f},{self.pointToMM[1]:0.2f}]mm ({self.__coord2String(self.physicalCoord2Pixels(self.pointToMM))} px). Area = {self.jobAreaInMM()}.Estimated duration [{self.__duration2String()}] ."
     
     def physicalCoord2Pixels(self, XYinMM):
         #invert Y axis since the image is upside down, so WRONG if you look at it now but since you have to flip the image to use it later...
@@ -114,6 +103,9 @@ class JobStats:
     
     def __coord2String(self, XYinMM):
         return f"({int(XYinMM[0])}, {int(XYinMM[1])})"
+    
+    def jobAreaInMM(self):
+        return (self.pointToMM[0] - self.pointFromMM[0], self.pointToMM[1] - self.pointFromMM[1])
 
 
 
